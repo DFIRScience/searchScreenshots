@@ -1,444 +1,122 @@
 #!/usr/bin/python3
 
 # by Antonio "Visi@n" Broi antonio@tsurugi-linux.org
+# by Andrea Canepa (A-725-K) andrea.canepa.12@protonmail.com
 # https://tsurugi-linux.org
-# 20211007
+# 20211014
 
-# 
+#
 # LICENSE M.I.T.  https://opensource.org/licenses/MIT
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
-# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS 
-#OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR 
-#OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+# WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
+# OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+# OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-# Example: searchScreenshots.py -i images/ -o matchImages/
-
-
-from PIL import Image
 import time
-from datetime import datetime
-from os import listdir
 import argparse
 import os
-import cv2
-import sys
-import re
 import hashlib
 import psutil
 
+from PIL import Image
+from datetime import datetime
 
-global destinationFileDirectory
-global filename
-global filenamecsv
-global image_file
 
 # construct the argument parse and parse the arguments
-ap = argparse.ArgumentParser()
-ap.add_argument("-i", "--inputDirectory", required=True,
-	help = "the input images directory to search for width height and pixel")
-ap.add_argument("-o", "--outputDirectory", default="matchImages" ,
-	help = "the output images directory where to write the result")
-ap.add_argument("-w", "--width", default=720,
-	help = "the images width")
-ap.add_argument("-e", "--height", default=1440,
-	help = "the images height")
-ap.add_argument("-p", "--pixel", default=400,
-	help = "the images pixel")
-	
-args = vars(ap.parse_args())
+def parse_cli_args():
+    ap = argparse.ArgumentParser()
+    ap.add_argument('-i', '--inputDirectory', required=True, help='the input images directory to search for width height and pixel')
+    ap.add_argument('-o', '--outputDirectory', default='output', help='the output images directory where to write the result')
+    # ap.add_argument('-w', '--width', default=720, help='the images width')
+    # ap.add_argument('-e', '--height', default=1440, help='the images height')
+    # ap.add_argument('-p', '--pixel', default=400, help='the images pixel')
+    return ap.parse_args()
+
 
 def setup(OUTDIR):
-	print("Create output folders and files")
-	# Only use output directory - check if exists or
-	# Create random file name
-	if not os.path.exists(OUTDIR):
-		os.makedirs(OUTDIR)
-		filenamecs = str(datetime.now().strftime("%Y_%m_%d_%H_%M_%S"))+".csv"
-		filenamecsv = open(OUTDIR+"/"+filenamecs, "w")
-		filenamecsv.write("filename"+","+"width"+","+"height"+","+"MD5"+","+"SHA1"+"\n")
-	else:
-		print("The output directory folder exists. Please try another name.")
-		#destinationFileDirectory = str((datetime.now().strftime("%Y_%m_%d_%H_%M_%S")))
+    print('Creating output folders and files...\n' + '_'*50 + '\n')
+    # Only use output directory - check if exists or
+    # Create random file name
+    if os.path.exists(OUTDIR):
+        print('The output directory folder exists. Please try another name.')
+        exit(1)
 
-def processImage(image, filenamecsv):
-		#img.show()
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg) + " heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+    os.makedirs(OUTDIR)
+    os.makedirs(f'{OUTDIR}/images')
+    
+    filename = f'report_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}.csv'
+    filenamecsv = open(f'{OUTDIR}/{filename}', 'w')
+    filenamecsv.write('filename,width,height,MD5,SHA1,type\n')
+    return filenamecsv
 
-		time.sleep(3)
-		# hide image
-""" 		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill() """
 
-# the directory to searching images
-# Add ecursion
-images = os.listdir(args["inputDirectory"]) 
+def process_image(image, image_name, image_file_content, filenamecsv, outputDir, type):
+    image.show()
+    try:
+        image.save(f'{outputDir}/images/{image_name.split("/")[-1]}')
+    except Exception as e:
+        print(f'Cannot save image because: {e}')
+        exit(1)
 
-# Image.Image.'getbands', 'getbbox', 'getchannel', 'getcolors', 'getdata', 'getexif', 'getextrema', 'getim', 'getpalette', 'getpixel', 'getprojection'
-# loop for scanning images
-for image in images:
-	img = Image.open((args["inputDirectory"]) + image) # Image properties
-	image_file = open((args["inputDirectory"]) + image).read() # Image contents data
-	widthImg = Image.Image.width.__get__(img)
-	heightImg = Image.Image.height.__get__(img)
-	print("Found image width: " + widthImg + " height: " + heightImg)
-	#print(widthImg)
-	#print(heightImg)
+    widthImg = Image.Image.width.__get__(image)
+    heightImg = Image.Image.height.__get__(image)
 
-	if (widthImg == int(args["width"]) and heightImg == int(args["height"])): #like: 
-        processImage(image, filenamecsv)
-	if (widthImg == 720 and heightImg == 1440):#like: moto g(6)play P4 XT1922-1 #
-		img.show()
-	
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+    hash_object_md5 = hashlib.md5(image_file_content).hexdigest()
+    hash_object_sha1 = hashlib.sha1(image_file_content).hexdigest()
+    
+    print(f'|--> image MD5: {hash_object_md5}')
+    print(f'|--> image SHA1: {hash_object_sha1}\n')
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+    filenamecsv.write(f'{image_name},{widthImg},{heightImg},{hash_object_md5},{hash_object_sha1},{type}\n')
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+    time.sleep(3)
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+    # hide image
+    for proc in psutil.process_iter():
+        if proc.name() == 'display':
+            proc.kill()
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
 
-		print("   ")
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+# process the input directory and all its sub-directories
+def process_dir_tree(directory, filenamecsv, outdir):
+    files = [os.path.join(path, f) for path, _, files in os.walk(directory) for f in files]
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+    # loop for scanning images
+    for file in files:
+        img = None
+        try:
+            img = Image.open(f'{file}')  # Image properties
+        except Exception as e:
+            print(f'/!\\ {file} is not an image, skipping...\n')
+            continue
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+        print(f'[!!] Found image: {file}...')
+        image_file = open(f'{file}', 'rb')
+        image_content = image_file.read()  # Image contents data
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+        widthImg = Image.Image.width.__get__(img)
+        heightImg = Image.Image.height.__get__(img)
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+        print(f'|--> image width: {widthImg}')
+        print(f'|--> height: {heightImg}')
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+        if (widthImg == 720 and heightImg == 1440):  # like: moto g(6)play P4 XT1922-1 #
+            process_image(img, file, image_content, filenamecsv, outdir, 'moto g(6)play P4 XT1922-1')
+        elif (widthImg == 2048 and heightImg == 2732):  # like: Ipad Pro
+            process_image(img, file, image_content, filenamecsv, outdir, 'Ipad Pro')
+        elif (widthImg == 720 and heightImg == 1280):  # like: Asus Z017
+            process_image(img, file, image_content, filenamecsv, outdir, 'Asus Z017')
+        else:
+            print('|--> [??] Unknown ScreenShot size [??]\n')
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-		
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
+        img.close()
+        image_file.close()
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-				
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
 
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
-				
-	elif (widthImg == 2048 and heightImg == 2732):# like: Ipad Pro
-		img.show()
-		
-		img.save((args["outputDirectory"])+"/"+ str(image))
-		
-		print(str(image))
-		print("widthImg : " + str(widthImg)) 
-		print("heightImg : " + str(heightImg))
-		
-		hash_object_md5 = hashlib.md5(image_file).hexdigest()
-		print(hash_object_md5)
-		
-		hash_object_sha1 = hashlib.sha1(image_file).hexdigest()
-		print(hash_object_sha1)
-		
-		#filenamecsv.write(str(image)+","+str(widthImg)+","+str(heightImg)+","+hash_object_md5+","+hash_object_sha1+"\n")
-		print("   ")
-		
-		time.sleep(3)
-		# hide image
-		for proc in psutil.process_iter():
-			if proc.name() == "display":
-				proc.kill()
+def main():
+    args = parse_cli_args()
+    filenamecsv = setup(args.outputDirectory)
+    process_dir_tree(args.inputDirectory, filenamecsv, args.outputDirectory)
 
-	else:
-		print("Not Screen Shot present in this directory")	
-		
-#filenamecsv.close()
-#image_file.close()
-exit
+
+main()
