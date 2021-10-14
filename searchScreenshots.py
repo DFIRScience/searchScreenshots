@@ -27,25 +27,25 @@ def parse_cli_args():
     ap = argparse.ArgumentParser()
     ap.add_argument('-i', '--inputDirectory', required=True, help='the input images directory to search for width height and pixel')
     ap.add_argument('-o', '--outputDirectory', default='output', help='the output images directory where to write the result')
+    ap.add_argument('-c', '--csv', default= f'report_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}.csv', help='the name of the csv report')
     # ap.add_argument('-w', '--width', default=720, help='the images width')
     # ap.add_argument('-e', '--height', default=1440, help='the images height')
     # ap.add_argument('-p', '--pixel', default=400, help='the images pixel')
     return ap.parse_args()
 
 
-def setup(OUTDIR):
+def setup(outdir, filename):
     print('Creating output folders and files...\n' + '_'*50 + '\n')
     # Only use output directory - check if exists or
     # Create random file name
-    if os.path.exists(OUTDIR):
+    if os.path.exists(outdir):
         print('The output directory folder exists. Please try another name.')
         exit(1)
 
-    os.makedirs(OUTDIR)
-    os.makedirs(f'{OUTDIR}/images')
+    os.makedirs(outdir)
+    os.makedirs(f'{outdir}/images')
     
-    filename = f'report_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}.csv'
-    filenamecsv = open(f'{OUTDIR}/{filename}', 'w')
+    filenamecsv = open(f'{outdir}/{filename}', 'w')
     filenamecsv.write('filename,width,height,MD5,SHA1,type\n')
     return filenamecsv
 
@@ -115,7 +115,7 @@ def process_dir_tree(directory, filenamecsv, outdir):
 
 def main():
     args = parse_cli_args()
-    filenamecsv = setup(args.outputDirectory)
+    filenamecsv = setup(args.outputDirectory, args.csv)
     process_dir_tree(args.inputDirectory, filenamecsv, args.outputDirectory)
 
 
