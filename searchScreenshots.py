@@ -25,7 +25,7 @@ from datetime import datetime
 # construct the argument parse and parse the arguments
 def parse_cli_args():
     ap = argparse.ArgumentParser()
-    ap.add_argument('-i', '--inputDirectory', required=True, help='the input images directory to search for width height and pixel')
+    ap.add_argument('-i', '--inputDirectory', required=True, help='the root directory to search for images')
     ap.add_argument('-o', '--outputDirectory', default='output', help='the output images directory where to write the result')
     ap.add_argument('-c', '--csv', default= f'report_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}.csv', help='the name of the csv report')
     # ap.add_argument('-w', '--width', default=720, help='the images width')
@@ -86,7 +86,7 @@ def process_dir_tree(directory, filenamecsv, outdir):
         img = None
         try:
             img = Image.open(f'{file}')  # Image properties
-        except Exception as e:
+        except Exception:
             print(f'/!\\ {file} is not an image, skipping...\n')
             continue
 
