@@ -13,9 +13,8 @@ OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 """
 
 # Built-in/Generic Imports
-import time
+import os
 import argparse
-import os, sys
 import datetime
 import hashlib
 
@@ -54,6 +53,8 @@ known_ss_sizes = [
     '1024:1366:iPad Pro'
 ]
 
+ASCII_ART = 'header.txt'
+
 # Construct the argument parse and parse the arguments
 # Arguments: None
 # Returns: CLI arguments as strings
@@ -74,7 +75,7 @@ def parse_cli_args():
 def setup(outdir, filename):
     # Check output directory. Exit if exists.
     if os.path.exists(outdir):
-        print('The output directory folder exists. Please try another name.')
+        print('/!\\ The output directory folder exists. Please try another name.')
         exit(1)
 
     print('Creating output folders and files...\n' + '_'*50 + '\n')
@@ -94,7 +95,7 @@ def process_image(image, image_name, image_file_content, filenamecsv, outputDir,
     try:
         image.save(f'{outputDir}/images/{image_name.split("/")[-1]}')
     except Exception as e:
-        print(f'Cannot save image because: {e}')
+        print(f'/!\\ Cannot save image because: {e}')
         exit(1)
 
     widthImg = Image.Image.width.__get__(image)
@@ -171,12 +172,17 @@ def process_dir_tree(directory, filenamecsv, outdir, known_ss_sizes):
 def main():
     args = parse_cli_args()
     if int(args.width) > 0 and int(args.height) > 0:
-        print('[!!] Custom resolution defined. Searching only for custom size.')
+        print('[!!] Custom resolution defined. Searching only for custom size.\n')
         known_ss_sizes = [f'{args.width}:{args.height}:Custom']
+    elif int(args.width) > 0 or int(args.height) > 0:
+        print('/!\\ Error: To define a custom resolution you must specify both width and heigth.')
+        exit(1)
+
     filenamecsv = setup(args.outputDirectory, args.csv)
     process_dir_tree(args.inputDirectory, filenamecsv, args.outputDirectory, known_ss_sizes)
 
 
 if __name__ == '__main__':
-    print(f'{sys.argv[0]} v{__version__} started at {datetime.now()}')
+    with open(ASCII_ART, 'r') as header:
+        print(f'{header.read()}v{__version__} started at {datetime.now()}\n\n')
     main()
