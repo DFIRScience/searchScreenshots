@@ -9,6 +9,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2021-10-18
+### Added
+- ASCII art on startup
+
+### Changed
+- Optimized lookup algorithm for screenshot sizes
+- Better use of lazy loading of path traversal (`os.walk()`)
+- Function comments
+
+### Removed
+- Unused libraries
+
+### Fixed
+- Unbound known_ss_sizes
+
 ## [1.0.1] - 2021-10-15
 ### Added
 - Info header
