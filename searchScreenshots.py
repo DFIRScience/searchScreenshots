@@ -26,7 +26,7 @@ __author__ = 'Antonio "Visi@n" Broi, Andrea Canepa (A-725-K), Joshua James (DFIR
 __copyright__ = 'Copyright 2021, searchScreenshots'
 __credits__ = ['Tsurugi Linux Team, https://tsurugi-linux.org']
 __license__ = 'MIT'
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 __maintainer__ = 'Joshua James (DFIRScience)'
 __email__ = 'antonio@tsurugi-linux.org, andrea.canepa.12@protonmail.com, joshua@dfirscience.org'
 __status__ = 'active, 2021-10-15'
@@ -41,31 +41,31 @@ ASCII_ART = 'header.txt'
 def init_ss_sizes(width, height):
     if int(width) > 0 and int(height) > 0:
         print('[!!] Custom resolution defined. Searching only for custom size.\n')
-        return [f'{width}:{height}:Custom']
+        return {f'{width}:{height}': 'Custom'}
     elif int(width) > 0 or int(height) > 0:
         print('/!\\ Error: To define a custom resolution you must specify both width and heigth.')
         exit(1)
 
     # EDIT THIS LIST to add new known ss sizes
     # Apple device resolutions from https://w3codemasters.in/most-common-screen-resolutions/
-    return [
-        '720:1440:moto g(6)play P4 XT1922-1',
-        '2048:2732:Ipad Pro',
-        '720:1280:Asus Z017',
-        '1920:1080:Generic Display',
-        '360:640:Mobile Device',
-        '375:667:iPhone 6/7/8/SE',
-        '414:896:iPhone 11 Pro Max/XS/XR',
-        '375:812:iPhone 11 Pro / X / XS',
-        '414:736:iPhone 6/7/8 Plus',
-        '320:568:iPhone 5 / iPod touch',
-        '320:480:iPhone 4',
-        '834:1194:iPad Pro',
-        '810:1080:iPad 7th gen',
-        '834:1112:iPad Pro/Air',
-        '768:1024:iPad 5th gen/Pro/mini/air',
-        '1024:1366:iPad Pro'
-    ]
+    return {
+        '720:1440': 'moto g(6)play P4 XT1922-1',
+        '2048:2732': 'Ipad Pro',
+        '720:1280': 'Asus Z017',
+        '1920:1080': 'Generic Display',
+        '360:640': 'Mobile Device',
+        '375:667': 'iPhone 6/7/8/SE',
+        '414:896': 'iPhone 11 Pro Max/XS/XR',
+        '375:812': 'iPhone 11 Pro / X / XS',
+        '414:736': 'iPhone 6/7/8 Plus',
+        '320:568': 'iPhone 5 / iPod touch',
+        '320:480': 'iPhone 4',
+        '834:1194': 'iPad Pro',
+        '810:1080': 'iPad 7th gen',
+        '834:1112': 'iPad Pro/Air',
+        '768:1024': 'iPad 5th gen/Pro/mini/air',
+        '1024:1366': 'iPad Pro',
+    }
 
 
 # Construct the argument parse and parse the arguments
@@ -136,15 +136,11 @@ def process_image(image, image_name, image_file_content, filenamecsv, outputDir,
 # Arguments: current images width and height, known size list
 # Returns: true/false, if true return image type
 def ss_size_matches(widthImg, heightImg, known_ss_sizes):
-    for size in known_ss_sizes:
-        e = size.split(":")
-        if e[2] == "Custom": # Custom find EITHER the width OR the height
-            if e[0] == str(widthImg) or e[1] == str(heightImg):
-                return True, e[2] # e[2] is the image type
-        elif e[0] == str(widthImg) and e[1] == str(heightImg):
-            return True, e[2] # e[2] is the image type
-    return False, False
-
+    try:
+        return True, known_ss_sizes[f'{widthImg}:{heightImg}']
+    except KeyError:
+        return False, None
+    
 
 # process_dir_tree scans the input directory and sub-directories for images
 # Arguments: input directory, outfile CSV file, output directory
