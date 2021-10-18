@@ -105,6 +105,7 @@ def setup(outdir, filename):
 # Returns: None
 def process_image(image, image_name, image_file_content, filenamecsv, outputDir, type='unknown'):
     # image.show()
+
     try:
         image.save(f'{outputDir}/images/{image_name.split("/")[-1]}')
     except Exception as e:
@@ -149,34 +150,35 @@ def ss_size_matches(widthImg, heightImg, known_ss_sizes):
 # Arguments: input directory, outfile CSV file, output directory
 # Returns: None
 def process_dir_tree(directory, filenamecsv, outdir, known_ss_sizes):
-    files = [os.path.join(path, f) for path, _, files in os.walk(directory) for f in files]
-
     # loop for scanning images
-    for file in files:
-        img = None
-        try:
-            img = Image.open(f'{file}')  # Image properties
-        except Exception:
-            # print(f'/!\\ {file} is not an image, skipping...\n')
-            continue
+    for path, _, files in os.walk(directory):
+        for file in files:
+            filename = os.path.join(path, file)
+            
+            img = None
+            try:
+                img = Image.open(f'{filename}')  # Image properties
+            except Exception:
+                # print(f'/!\\ {filename} is not an image, skipping...\n')
+                continue
 
-        # print(f'[!!] Found image: {file}...')
-        image_file = open(f'{file}', 'rb')
-        image_content = image_file.read()  # Image contents data
+            # print(f'[!!] Found image: {filename}...')
+            image_file = open(f'{filename}', 'rb')
+            image_content = image_file.read()  # Image contents data
 
-        widthImg = Image.Image.width.__get__(img)
-        heightImg = Image.Image.height.__get__(img)
+            widthImg = Image.Image.width.__get__(img)
+            heightImg = Image.Image.height.__get__(img)
 
-        # print(f'|--> image width: {widthImg}')
-        # print(f'|--> height: {heightImg}')
+            # print(f'|--> image width: {widthImg}')
+            # print(f'|--> height: {heightImg}')
 
-        match, typeImg = ss_size_matches(widthImg, heightImg, known_ss_sizes)
-        if match:
-            print(f'[!!] Screenshot resolution matched: {file}')
-            process_image(img, file, image_content, filenamecsv, outdir, typeImg)
+            match, typeImg = ss_size_matches(widthImg, heightImg, known_ss_sizes)
+            if match:
+                print(f'[!!] Screenshot resolution matched: {filename}')
+                process_image(img, filename, image_content, filenamecsv, outdir, typeImg)
 
-        img.close()
-        image_file.close()
+            img.close()
+            image_file.close()
 
 
 # Main execution function gets CLI arguments, call setup, process input dir
