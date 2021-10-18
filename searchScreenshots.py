@@ -29,7 +29,7 @@ __license__ = 'MIT'
 __version__ = '1.0.2'
 __maintainer__ = 'Joshua James (DFIRScience)'
 __email__ = 'antonio@tsurugi-linux.org, andrea.canepa.12@protonmail.com, joshua@dfirscience.org'
-__status__ = 'active, 2021-10-15'
+__status__ = 'active, 2021-10-18'
 
 # Constants
 ASCII_ART = 'header.txt'
