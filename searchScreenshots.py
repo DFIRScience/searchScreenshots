@@ -55,6 +55,8 @@ known_ss_sizes = [
 ]
 
 # Construct the argument parse and parse the arguments
+# Arguments: None
+# Returns: CLI arguments as strings
 def parse_cli_args():
     ap = argparse.ArgumentParser()
     ap.add_argument('-i', '--inputDirectory', required=True, help='the root directory to search for images')
@@ -65,16 +67,17 @@ def parse_cli_args():
     #ap.add_argument('-p', '--pixel', default=400, help='the image pixel')
     return ap.parse_args()
 
+
 # setup creates the output directory and CSV file
 # Arguments: Output directory name and output CSV filename
-# Retrun: file handle for the csv output file
+# Returns: file handle for the csv output file
 def setup(outdir, filename):
-    print('Creating output folders and files...\n' + '_'*50 + '\n')
     # Check output directory. Exit if exists.
     if os.path.exists(outdir):
         print('The output directory folder exists. Please try another name.')
         exit(1)
 
+    print('Creating output folders and files...\n' + '_'*50 + '\n')
     os.makedirs(outdir)
     os.makedirs(f'{outdir}/images')
     
@@ -82,8 +85,9 @@ def setup(outdir, filename):
     filenamecsv.write('Filename,Width,Height,MD5,SHA1,Type\n')
     return filenamecsv
 
+
 # process_image gets image attributes and to the output CSV file
-# Arguments:
+# Arguments: image, output name, image content, csv report file name, output directory and screen type
 # Returns: None
 def process_image(image, image_name, image_file_content, filenamecsv, outputDir, type='unknown'):
     #image.show()
@@ -104,16 +108,18 @@ def process_image(image, image_name, image_file_content, filenamecsv, outputDir,
 
     filenamecsv.write(f'{image_name},{widthImg},{heightImg},{hash_object_md5},{hash_object_sha1},{type}\n')
 
-    time.sleep(3)
-
     # hide image
-    '''for proc in psutil.process_iter():
+    '''
+    time.sleep(3)
+    for proc in psutil.process_iter():
         if proc.name() == 'display':
-            proc.kill()'''
+            proc.kill()
+    '''
+
 
 # ss_size_matches give sizes and known size list
 # Arguments: current images width and height, known size list
-# Return: true/false, if true return image type
+# Returns: true/false, if true return image type
 def ss_size_matches(widthImg, heightImg, known_ss_sizes):
     for size in known_ss_sizes:
         e = size.split(":")
@@ -124,9 +130,10 @@ def ss_size_matches(widthImg, heightImg, known_ss_sizes):
             return True, e[2] # e[2] is the image type
     return False, False
 
+
 # process_dir_tree scans the input directory and sub-directories for images
 # Arguments: input directory, outfile CSV file, output directory
-# Returns:
+# Returns: None
 def process_dir_tree(directory, filenamecsv, outdir, known_ss_sizes):
     files = [os.path.join(path, f) for path, _, files in os.walk(directory) for f in files]
 
@@ -157,15 +164,19 @@ def process_dir_tree(directory, filenamecsv, outdir, known_ss_sizes):
         img.close()
         image_file.close()
 
+
 # Main execution function gets CLI arguments, call setup, process input dir
+# Arguments: None
+# Returns: None
 def main():
     args = parse_cli_args()
-    if int(args.width) > 0 or int(args.height) > 0:
-        print("[!!] Custom resolution defined. Searching only for custom size.")
-        known_ss_sizes = [str(args.width)+":"+str(args.height)+":Custom"]
+    if int(args.width) > 0 and int(args.height) > 0:
+        print('[!!] Custom resolution defined. Searching only for custom size.')
+        known_ss_sizes = [f'{args.width}:{args.height}:Custom']
     filenamecsv = setup(args.outputDirectory, args.csv)
     process_dir_tree(args.inputDirectory, filenamecsv, args.outputDirectory, known_ss_sizes)
 
-if __name__ == "__main__":
-    print(sys.argv[0] + " v" + __version__ + " started at " + str(datetime.now()))
+
+if __name__ == '__main__':
+    print(f'{sys.argv[0]} v{__version__} started at {datetime.now()}')
     main()
