@@ -31,29 +31,42 @@ __maintainer__ = 'Joshua James (DFIRScience)'
 __email__ = 'antonio@tsurugi-linux.org, andrea.canepa.12@protonmail.com, joshua@dfirscience.org'
 __status__ = 'active, 2021-10-15'
 
-# List of screenshot w:h:type
-# EDIT THIS LIST to add new known ss sizes
-# Apple device resolutions from https://w3codemasters.in/most-common-screen-resolutions/
-known_ss_sizes = [
-    '720:1440:moto g(6)play P4 XT1922-1',
-    '2048:2732:Ipad Pro',
-    '720:1280:Asus Z017',
-    '1920:1080:Generic Display',
-    '360:640:Mobile Device',
-    '375:667:iPhone 6/7/8/SE',
-    '414:896:iPhone 11 Pro Max/XS/XR',
-    '375:812:iPhone 11 Pro / X / XS',
-    '414:736:iPhone 6/7/8 Plus',
-    '320:568:iPhone 5 / iPod touch',
-    '320:480:iPhone 4',
-    '834:1194:iPad Pro',
-    '810:1080:iPad 7th gen',
-    '834:1112:iPad Pro/Air',
-    '768:1024:iPad 5th gen/Pro/mini/air',
-    '1024:1366:iPad Pro'
-]
-
+# Constants
 ASCII_ART = 'header.txt'
+
+
+# Initialize the list of screenshot sizes
+# Arguments: width read from CLI, height read from CLI
+# Returns: a lookup list of screenshots sizes with format w:h:type
+def init_ss_sizes(width, height):
+    if int(width) > 0 and int(height) > 0:
+        print('[!!] Custom resolution defined. Searching only for custom size.\n')
+        return [f'{width}:{height}:Custom']
+    elif int(width) > 0 or int(height) > 0:
+        print('/!\\ Error: To define a custom resolution you must specify both width and heigth.')
+        exit(1)
+
+    # EDIT THIS LIST to add new known ss sizes
+    # Apple device resolutions from https://w3codemasters.in/most-common-screen-resolutions/
+    return [
+        '720:1440:moto g(6)play P4 XT1922-1',
+        '2048:2732:Ipad Pro',
+        '720:1280:Asus Z017',
+        '1920:1080:Generic Display',
+        '360:640:Mobile Device',
+        '375:667:iPhone 6/7/8/SE',
+        '414:896:iPhone 11 Pro Max/XS/XR',
+        '375:812:iPhone 11 Pro / X / XS',
+        '414:736:iPhone 6/7/8 Plus',
+        '320:568:iPhone 5 / iPod touch',
+        '320:480:iPhone 4',
+        '834:1194:iPad Pro',
+        '810:1080:iPad 7th gen',
+        '834:1112:iPad Pro/Air',
+        '768:1024:iPad 5th gen/Pro/mini/air',
+        '1024:1366:iPad Pro'
+    ]
+
 
 # Construct the argument parse and parse the arguments
 # Arguments: None
@@ -65,7 +78,7 @@ def parse_cli_args():
     ap.add_argument('-c', '--csv', default= f'report_{datetime.now().strftime("%Y_%m_%d_%H_%M_%S")}.csv', help='the name of the csv report')
     ap.add_argument('-w', '--width', default=0, help='a custom image width')
     ap.add_argument('-e', '--height', default=0, help='a custom image height')
-    #ap.add_argument('-p', '--pixel', default=400, help='the image pixel')
+    # ap.add_argument('-p', '--pixel', default=400, help='the image pixel')
     return ap.parse_args()
 
 
@@ -91,7 +104,7 @@ def setup(outdir, filename):
 # Arguments: image, output name, image content, csv report file name, output directory and screen type
 # Returns: None
 def process_image(image, image_name, image_file_content, filenamecsv, outputDir, type='unknown'):
-    #image.show()
+    # image.show()
     try:
         image.save(f'{outputDir}/images/{image_name.split("/")[-1]}')
     except Exception as e:
@@ -144,18 +157,18 @@ def process_dir_tree(directory, filenamecsv, outdir, known_ss_sizes):
         try:
             img = Image.open(f'{file}')  # Image properties
         except Exception:
-            #print(f'/!\\ {file} is not an image, skipping...\n')
+            # print(f'/!\\ {file} is not an image, skipping...\n')
             continue
 
-        #print(f'[!!] Found image: {file}...')
+        # print(f'[!!] Found image: {file}...')
         image_file = open(f'{file}', 'rb')
         image_content = image_file.read()  # Image contents data
 
         widthImg = Image.Image.width.__get__(img)
         heightImg = Image.Image.height.__get__(img)
 
-        #print(f'|--> image width: {widthImg}')
-        #print(f'|--> height: {heightImg}')
+        # print(f'|--> image width: {widthImg}')
+        # print(f'|--> height: {heightImg}')
 
         match, typeImg = ss_size_matches(widthImg, heightImg, known_ss_sizes)
         if match:
@@ -171,13 +184,7 @@ def process_dir_tree(directory, filenamecsv, outdir, known_ss_sizes):
 # Returns: None
 def main():
     args = parse_cli_args()
-    if int(args.width) > 0 and int(args.height) > 0:
-        print('[!!] Custom resolution defined. Searching only for custom size.\n')
-        known_ss_sizes = [f'{args.width}:{args.height}:Custom']
-    elif int(args.width) > 0 or int(args.height) > 0:
-        print('/!\\ Error: To define a custom resolution you must specify both width and heigth.')
-        exit(1)
-
+    known_ss_sizes = init_ss_sizes(args.width, args.height)
     filenamecsv = setup(args.outputDirectory, args.csv)
     process_dir_tree(args.inputDirectory, filenamecsv, args.outputDirectory, known_ss_sizes)
 
